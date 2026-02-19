@@ -1,0 +1,35 @@
+name: PR Policy
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR has description
+        run: |
+          if [ -z "${{ github.event.pull_request.body }}" ]; then
+            echo "PR sin descripción. Agrega un resumen y qué cambiaste."
+            exit 1
+          fi
+          echo "PR con descripción."
+
+      - name: Enforce branch naming (feature/* or fix/*)
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH" =~ ^(feature|fix)/.+$ ]]; then
+            echo "Nombre de rama válido: $BRANCH"
+          else
+            echo "Rama inválida: $BRANCH"
+            echo "Usa: feature/lo-que-sea  o  fix/lo-que-sea"
+            exit 1
+          fi
+
+      - name: Summary
+        run: |
+          echo "## PR Policy" >> $GITHUB_STEP_SUMMARY
+          echo "- Title: ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Head:  ${{ github.event.pull_request.head.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Base:  ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
